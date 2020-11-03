@@ -1,39 +1,89 @@
-// Enemies our player must avoid
-var Enemy = function() {
-    // Variables applied to each of our instances go here,
-    // we've provided one for you to get started
+class Player {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.sprite = 'images/char-boy.png';
+    }
 
-    // The image/sprite for our enemies, this uses
-    // a helper we've provided to easily load images
-    this.sprite = 'images/enemy-bug.png';
-};
+    update() {
+        this.checkWin();
+    }
 
-// Update the enemy's position, required method for game
-// Parameter: dt, a time delta between ticks
-Enemy.prototype.update = function(dt) {
-    // You should multiply any movement by the dt parameter
-    // which will ensure the game runs at the same speed for
-    // all computers.
-};
+    render() {
+        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    }
 
-// Draw the enemy on the screen, required method for game
-Enemy.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-};
+    handleInput(move) {
+        switch(move) {
+            case 'left':
+                if (this.x > 0) this.x -= 100;
+                break;
+            case 'right':
+                if (this.x < 400) this.x += 100;
+                break;
+            case 'up':
+                if (this.y > 0) this.y -= 85;
+                break;
+            case 'down':
+                if (this.y < 380) this.y += 85;
+                break;
+            default:
+                break;
+        }
+    }
 
-// Now write your own player class
-// This class requires an update(), render() and
-// a handleInput() method.
+    checkWin() {
+        if (this.y < 0) setTimeout(() => {
+            this.resetStart();
+            alert('You win!');
+        }, 10);
+    }
 
+    resetStart(){
+        this.x = 200;
+        this.y = 400;
+    }
+}
 
-// Now instantiate your objects.
-// Place all enemy objects in an array called allEnemies
-// Place the player object in a variable called player
+class Enemy {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.sprite = 'images/enemy-bug.png';
+        this.speed = (Math.random() * 200) + 200;
+    }
 
+    update(dt) {
+        this.x += this.speed * dt;
+        if (this.x > ctx.canvas.width) this.x = -100;
+        this.checkCollisions();
+    }
 
+    render() {
+        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    }
+    checkCollisions() {
+        if (
+            this.x >= player.x - 50 &&
+            this.x <= player.x + 50 &&
+            this.y >= player.y - 50 &&
+            this.y <= player.y + 50
+        ) setTimeout(() => {
+              player.resetStart();
+              alert('You lose!');
+        }, 10);
+    }
+}
 
-// This listens for key presses and sends the keys to your
-// Player.handleInput() method. You don't need to modify this.
+const player = new Player(200, 400);
+
+const allEnemies = [];
+
+(function generateEnemies(){
+    const pointY = [60, 145, 225];
+    pointY.forEach(point => allEnemies.push(new Enemy((Math.random()*200), point)));
+})();
+
 document.addEventListener('keyup', function(e) {
     var allowedKeys = {
         37: 'left',
@@ -41,6 +91,5 @@ document.addEventListener('keyup', function(e) {
         39: 'right',
         40: 'down'
     };
-
     player.handleInput(allowedKeys[e.keyCode]);
 });
